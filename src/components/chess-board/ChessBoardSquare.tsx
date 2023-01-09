@@ -29,7 +29,7 @@ const ChessBoardSquare = ({
         (y % 2 === 0 && x % 2 === 0) || (y % 2 === 1 && x % 2 === 1)
           ? "bg-amber-100"
           : "bg-green-700"
-      } ${enabled && "cursor-pointer"}`}
+      } ${enabled ? "cursor-pointer" : ""}`}
       onClick={() => !piece && onMovePiece(x, y)}
       key={(y + 1) * (x + 1)}
     >
