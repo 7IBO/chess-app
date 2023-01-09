@@ -30,7 +30,7 @@ const ChessBoardSquare = ({
           ? "bg-amber-100"
           : "bg-green-700"
       } ${enabled && "cursor-pointer"}`}
-      onClick={() => onMovePiece(x, y)}
+      onClick={() => !piece && onMovePiece(x, y)}
       key={(y + 1) * (x + 1)}
     >
       {piece && (

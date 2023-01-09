@@ -44,7 +44,6 @@ export class Piece {
   }
 
   protected addMovePossible(x: number, y: number) {
-    // Check if no exist in current array
     if (
       !(this.position.x === x && this.position.y === y) &&
       this.movesPossible.indexOf({ x, y }) === -1 &&

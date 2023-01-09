@@ -2,11 +2,7 @@ import { useState } from "react";
 import { Piece } from "../../models";
 import ChessBoardSquare from "./ChessBoardSquare";
 
-type Props = {
-  pieces: Piece[];
-};
-
-const ChessBoard = ({ pieces }: Props) => {
+const ChessBoard = () => {
   const [selectedPiece, setSelectedPiece] = useState<null | Piece>(null);
 
   const handleSelectPiece = (piece: Piece) => {
@@ -16,7 +12,9 @@ const ChessBoard = ({ pieces }: Props) => {
 
   const handleMovePiece = (x: number, y: number) => {
     if (selectedPiece) {
-      selectedPiece.move(x, y);
+      if (selectedPiece.hasMovePossible(x, y)) {
+        selectedPiece.move(x, y);
+      }
       setSelectedPiece(null);
     }
   };
