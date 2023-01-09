@@ -26,21 +26,13 @@ export class Piece {
   }
 
   move(x: number, y: number) {
-    this.x = x;
-    this.y = y;
+    if (this.hasMovePossible(x, y)) {
+      this.x = x;
+      this.y = y;
 
-    this.getMovesPossible();
-    this.hasMoved = true;
-  }
-
-  moveX(value: number) {
-    this.x = value;
-    this.hasMoved = true;
-  }
-
-  moveY(value: number) {
-    this.y = value;
-    this.hasMoved = true;
+      this.getMovesPossible();
+      this.hasMoved = true;
+    }
   }
 
   get position() {
@@ -54,6 +46,7 @@ export class Piece {
   protected addMovePossible(x: number, y: number) {
     // Check if no exist in current array
     if (
+      !(this.position.x === x && this.position.y === y) &&
       this.movesPossible.indexOf({ x, y }) === -1 &&
       x >= 0 &&
       x <= 7 &&
@@ -112,5 +105,9 @@ export class Piece {
           this.addMovePossible(item.x, item.y);
         });
     }
+  }
+
+  public hasMovePossible(x: number, y: number) {
+    return !!this.movesPossible.some((move) => move.x === x && move.y === y);
   }
 }
