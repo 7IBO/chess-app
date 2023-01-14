@@ -1,4 +1,4 @@
-import React, { HTMLProps } from "react";
+import { HTMLProps } from "react";
 import { pieces } from "../../config/const";
 import { Piece } from "../../models";
 import ChessBoardPiece from "./ChessBoardPiece";
@@ -31,20 +31,19 @@ const ChessBoardSquare = ({
           : "bg-green-700"
       } ${enabled ? "cursor-pointer" : ""}`}
       onClick={() => !piece && onMovePiece(x, y)}
+      data-position={[x, y]}
       key={(y + 1) * (x + 1)}
     >
       {piece && (
         <ChessBoardPiece
-          x={x}
-          y={y}
           piece={piece}
           onSelectPiece={() => onSelectPiece(piece)}
-          onDragPiece={(x, y) => {}}
+          onMovePiece={(x, y) => onMovePiece(x, y)}
         />
       )}
 
       {enabled && (
-        <div className="absolute w-4 h-4 top-1/2 left-1/2 rounded-full bg-blue-500 z-10 -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute w-4 h-4 top-1/2 left-1/2 rounded-full bg-blue-500 -translate-x-1/2 -translate-y-1/2" />
       )}
     </div>
   );

@@ -24,7 +24,7 @@ const ChessBoard = () => {
       className="flex flex-wrap w-[48rem]"
       style={{
         position: "relative",
-        overflow: "auto",
+        overflow: "hidden",
         padding: "0",
       }}
     >
