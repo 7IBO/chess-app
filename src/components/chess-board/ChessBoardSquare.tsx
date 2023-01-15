@@ -43,7 +43,7 @@ const ChessBoardSquare = ({
       )}
 
       {enabled && (
-        <div className="absolute w-4 h-4 top-1/2 left-1/2 rounded-full bg-blue-500 -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute w-4 h-4 top-1/2 left-1/2 rounded-full bg-blue-500 -translate-x-1/2 -translate-y-1/2 z-50" />
       )}
     </div>
   );

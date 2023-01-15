@@ -41,7 +41,7 @@ const ChessBoardPiece = ({ piece, onSelectPiece, onMovePiece }: Props) => {
       position={{ x: 0, y: 0 }}
     >
       <div
-        className="w-full h-full cursor-grab z-50 relative"
+        className="w-full h-full cursor-grab z-10 relative"
         onClick={onSelectPiece}
         style={{
           backgroundImage: `url(./assets/${piece.image})`,
