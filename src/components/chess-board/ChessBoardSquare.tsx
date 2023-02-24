@@ -1,7 +1,8 @@
 import { HTMLProps } from "react";
-import { pieces } from "../../config/const";
+import { pieces } from "../../_mocks/pieces";
 import { Piece } from "../../models";
 import ChessBoardPiece from "./ChessBoardPiece";
+import { SQUARE_BG_CLASS } from "../../config";
 
 type Props = HTMLProps<HTMLDivElement> & {
   position: {
@@ -27,8 +28,8 @@ const ChessBoardSquare = ({
     <div
       className={`p-2 w-24 h-24 relative ${
         (y % 2 === 0 && x % 2 === 0) || (y % 2 === 1 && x % 2 === 1)
-          ? "bg-amber-100"
-          : "bg-green-700"
+          ? SQUARE_BG_CLASS.light
+          : SQUARE_BG_CLASS.dark
       } ${enabled ? "cursor-pointer" : ""}`}
       onClick={() => !piece && onMovePiece(x, y)}
       data-position={[x, y]}
@@ -38,7 +39,7 @@ const ChessBoardSquare = ({
         <ChessBoardPiece
           piece={piece}
           onSelectPiece={() => onSelectPiece(piece)}
-          onMovePiece={(x, y) => onMovePiece(x, y)}
+          onMovePiece={onMovePiece}
         />
       )}
 

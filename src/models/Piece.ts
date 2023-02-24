@@ -14,15 +14,18 @@ export class Piece {
 
   public movesPossible: { x: number; y: number }[];
 
-  constructor(name: string, x: number, y: number, color: "black" | "white") {
+  protected constructor(
+    name: string,
+    x: number,
+    y: number,
+    color: "black" | "white"
+  ) {
     this.name = name;
     this.x = x;
     this.y = y;
     this.color = color;
     this.hasMoved = false;
     this.movesPossible = [];
-
-    this.getMovesPossible();
   }
 
   move(x: number, y: number) {

@@ -1,5 +1,4 @@
 import { ChessBoard } from "./components/chess-board";
-import { pieces } from "./config/const";
 
 function App() {
   return (
