@@ -1,4 +1,4 @@
-import { Bishop, King, Knight, Pawn, Piece, Queen, Rook } from "../models";
+import { Bishop, King, Knight, Pawn, Queen, Rook } from "@/models";
 
 export const pieces = [
   new Rook(0, 0, "black"),

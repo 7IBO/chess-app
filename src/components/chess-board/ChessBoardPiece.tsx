@@ -1,5 +1,6 @@
 import Draggable, { DraggableEventHandler } from "react-draggable";
-import { Piece } from "../../models";
+
+import { Piece } from "@/models";
 
 type Props = {
   piece: Piece;

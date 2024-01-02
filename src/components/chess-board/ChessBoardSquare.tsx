@@ -1,8 +1,10 @@
 import { HTMLProps } from "react";
-import { pieces } from "../../_mocks/pieces";
-import { Piece } from "../../models";
+
+import { pieces } from "@/data/pieces";
+import { Piece } from "@/models";
+import { SQUARE_BG_CLASS } from "@/config";
+
 import ChessBoardPiece from "./ChessBoardPiece";
-import { SQUARE_BG_CLASS } from "../../config";
 
 type Props = HTMLProps<HTMLDivElement> & {
   position: {
@@ -22,7 +24,7 @@ const ChessBoardSquare = ({
 }: Props) => {
   const piece = pieces.find(
     (piece) => piece.position.x === x && piece.position.y === y
-  );
+  ) as Piece;
 
   return (
     <div

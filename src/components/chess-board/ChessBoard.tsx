@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Piece } from "../../models";
+
+import { Piece } from "@/models";
+
 import ChessBoardSquare from "./ChessBoardSquare";
 
 const ChessBoard = () => {
