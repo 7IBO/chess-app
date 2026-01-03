@@ -1,46 +1,62 @@
-import { HTMLProps } from "react";
+/**
+ * Composant représentant une case de l'échiquier
+ */
 
-import { pieces } from "@/data/pieces";
-import { Piece } from "@/models";
-import { SQUARE_BG_CLASS } from "@/config";
-
+import { memo } from "react";
+import { SQUARE_BG_CLASS } from "../../config";
+import { useBoard } from "../../contexts/BoardContext";
+import type { Piece } from "../../models/Piece";
 import ChessBoardPiece from "./ChessBoardPiece";
 
-type Props = HTMLProps<HTMLDivElement> & {
+interface ChessBoardSquareProps {
   position: {
     x: number;
     y: number;
   };
   enabled?: boolean;
+  isLastMoveFrom?: boolean;
+  isLastMoveTo?: boolean;
+  isKingInCheck?: boolean;
   onSelectPiece: (piece: Piece) => void;
   onMovePiece: (x: number, y: number) => void;
-};
+}
 
-const ChessBoardSquare = ({
+const ChessBoardSquare = memo(function ChessBoardSquare({
   position: { x, y },
   enabled = false,
+  isLastMoveFrom = false,
+  isLastMoveTo = false,
+  isKingInCheck = false,
   onSelectPiece,
   onMovePiece,
-}: Props) => {
-  const piece = pieces.find(
-    (piece) => piece.position.x === x && piece.position.y === y
-  ) as Piece;
+}: ChessBoardSquareProps) {
+  const board = useBoard();
+  const piece = board.getPieceAt(x, y);
+
+  const isDarkSquare = (y % 2 === 0 && x % 2 === 1) || (y % 2 === 1 && x % 2 === 0);
+
+  // Classe CSS pour le highlight du dernier coup
+  const lastMoveClass = isLastMoveFrom
+    ? "ring-4 ring-yellow-400/70"
+    : isLastMoveTo
+      ? "ring-4 ring-yellow-500"
+      : "";
+
+  // Classe CSS pour le roi en échec
+  const checkClass = isKingInCheck ? "ring-4 ring-red-600 ring-offset-2" : "";
 
   return (
     <div
       className={`p-2 w-24 h-24 relative ${
-        (y % 2 === 0 && x % 2 === 0) || (y % 2 === 1 && x % 2 === 1)
-          ? SQUARE_BG_CLASS.light
-          : SQUARE_BG_CLASS.dark
-      } ${enabled ? "cursor-pointer" : ""}`}
-      onClick={() => !piece && onMovePiece(x, y)}
+        isDarkSquare ? SQUARE_BG_CLASS.dark : SQUARE_BG_CLASS.light
+      } ${enabled ? "cursor-pointer" : ""} ${lastMoveClass} ${checkClass} transition-all duration-200`}
+      onClick={() => (!piece || enabled) && onMovePiece(x, y)}
       data-position={[x, y]}
-      key={(y + 1) * (x + 1)}
     >
       {piece && (
         <ChessBoardPiece
           piece={piece}
-          onSelectPiece={() => onSelectPiece(piece)}
+          onSelectPiece={() => !enabled && onSelectPiece(piece)}
           onMovePiece={onMovePiece}
         />
       )}
@@ -50,6 +66,6 @@ const ChessBoardSquare = ({
       )}
     </div>
   );
-};
+});
 
 export default ChessBoardSquare;

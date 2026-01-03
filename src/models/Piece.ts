@@ -1,3 +1,6 @@
+import { MAX_POSITION, MIN_POSITION } from "@/constants/chess.constants";
+import type { Board } from "./Board";
+
 export class Piece {
   public name: string = "";
 
@@ -6,118 +9,153 @@ export class Piece {
 
   public color: "black" | "white";
 
-  protected canMoveDiagonally = (depth = 8) => {
-    // BOTTOM LEFT DIAGONAL
-    [...Array(depth).keys()]
-      .map((index) => ({ x: this.x - index, y: this.y + index }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
+  protected canMoveDiagonally(depth = 8, board?: Board): void {
+    const directions = [
+      { dx: -1, dy: 1 }, // BOTTOM LEFT
+      { dx: 1, dy: 1 }, // BOTTOM RIGHT
+      { dx: -1, dy: -1 }, // TOP LEFT
+      { dx: 1, dy: -1 }, // TOP RIGHT
+    ];
 
-    // BOTTOM RIGHT DIAGONAL
-    [...Array(depth).keys()]
-      .map((index) => ({ x: index + this.x, y: index + this.y }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
+    this.addMovesInDirections(directions, depth, board);
+  }
 
-    // TOP RIGHT DIAGONAL
-    [...Array(depth).keys()]
-      .map((index) => ({ x: this.x - index, y: this.y - index }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
+  protected canMoveHorizontally(depth = 8, board?: Board): void {
+    const directions = [
+      { dx: 0, dy: -1 }, // LEFT
+      { dx: 0, dy: 1 }, // RIGHT
+    ];
 
-    // TOP LEFT DIAGONAL
-    [...Array(depth).keys()]
-      .map((index) => ({ x: index + this.x, y: this.y - index }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
-  };
+    this.addMovesInDirections(directions, depth, board);
+  }
 
-  protected canMoveHorizontally = (depth = 4) => {
-    [...Array(depth).keys()]
-      .map((index) => ({ x: this.x, y: this.y - index }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
+  protected canMoveVertically(depth = 8, board?: Board): void {
+    const directions = [
+      { dx: -1, dy: 0 }, // UP
+      { dx: 1, dy: 0 }, // DOWN
+    ];
 
-    [...Array(depth).keys()]
-      .map((index) => ({ x: this.x, y: this.y + index }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
-  };
+    this.addMovesInDirections(directions, depth, board);
+  }
 
-  protected canMoveVertically = (depth = 4) => {
-    [...Array(depth).keys()]
-      .map((index) => ({ x: this.x - index, y: this.y }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
+  /**
+   * Ajoute les mouvements dans les directions spécifiées
+   * S'arrête si une pièce bloque le chemin
+   */
+  protected addMovesInDirections(
+    directions: { dx: number; dy: number }[],
+    depth: number,
+    board?: Board
+  ): void {
+    for (const { dx, dy } of directions) {
+      for (let i = 1; i <= depth; i++) {
+        const newX = this.x + dx * i;
+        const newY = this.y + dy * i;
 
-    [...Array(depth).keys()]
-      .map((index) => ({ x: this.x + index, y: this.y }))
-      .map((item) => {
-        this.addMovePossible(item);
-      });
-  };
+        // Sortie du plateau
+        if (
+          newX < MIN_POSITION ||
+          newX > MAX_POSITION ||
+          newY < MIN_POSITION ||
+          newY > MAX_POSITION
+        )
+          break;
 
-  protected hasMoved: boolean;
+        if (board) {
+          const pieceAtPosition = board.getPieceAt(newX, newY);
+
+          if (pieceAtPosition) {
+            // Si c'est une pièce adverse, on peut la capturer
+            if (pieceAtPosition.color !== this.color) {
+              this.addMovePossible({ x: newX, y: newY });
+            }
+            break; // On ne peut pas aller plus loin dans cette direction
+          }
+        }
+
+        this.addMovePossible({ x: newX, y: newY });
+      }
+    }
+  }
+
+  private _hasMoved: boolean;
 
   public movesPossible: { x: number; y: number }[];
 
-  protected constructor(
-    name: string,
-    x: number,
-    y: number,
-    color: "black" | "white"
-  ) {
+  protected constructor(name: string, x: number, y: number, color: "black" | "white") {
     this.name = name;
     this.x = x;
     this.y = y;
     this.color = color;
-    this.hasMoved = false;
+    this._hasMoved = false;
     this.movesPossible = [];
   }
 
-  move(x: number, y: number) {
-    if (this.hasMovePossible(x, y)) {
-      this.x = x;
-      this.y = y;
-
-      this.getMovesPossible();
-      this.hasMoved = true;
-    }
+  move(x: number, y: number): void {
+    this.x = x;
+    this.y = y;
+    this._hasMoved = true;
   }
 
-  get position() {
+  /**
+   * Restaure l'état hasMoved (utilisé pour annuler des mouvements simulés)
+   */
+  setHasMoved(value: boolean): void {
+    this._hasMoved = value;
+  }
+
+  get position(): { x: number; y: number } {
     return { x: this.x, y: this.y };
   }
 
-  get image() {
+  get image(): string {
     return `${this.name}-${this.color}.png`;
   }
 
-  protected addMovePossible({ x, y }: { x: number; y: number }) {
+  get hasMoved(): boolean {
+    return this._hasMoved;
+  }
+
+  /**
+   * Calcule les mouvements de base pour le roi (sans roque)
+   * Utilisé pour éviter la récursion infinie lors de la vérification d'attaque
+   */
+  public calculateBasicKingMoves(board?: Board): void {
+    if (this.name === "king") {
+      this.movesPossible = [];
+      this.canMoveDiagonally(1, board);
+      this.canMoveHorizontally(1, board);
+      this.canMoveVertically(1, board);
+    }
+  }
+
+  protected addMovePossible({ x, y }: { x: number; y: number }): void {
     if (
       !(this.position.x === x && this.position.y === y) &&
-      this.movesPossible.indexOf({ x, y }) === -1 &&
-      x >= 0 &&
-      x <= 7 &&
-      y >= 0 &&
-      y <= 7
+      !this.movesPossible.some((move) => move.x === x && move.y === y) &&
+      x >= MIN_POSITION &&
+      x <= MAX_POSITION &&
+      y >= MIN_POSITION &&
+      y <= MAX_POSITION
     ) {
       this.movesPossible.push({ x, y });
     }
   }
 
-  public getMovesPossible() {
+  /**
+   * Calcule les mouvements possibles pour cette pièce
+   * À surcharger dans les classes filles
+   */
+  public calculateMoves(_board?: Board): void {
+    // Par défaut, ne fait rien
+    // Les classes filles surchargent cette méthode
+  }
+
+  public getMovesPossible(): { x: number; y: number }[] {
     return this.movesPossible;
   }
 
-  public hasMovePossible(x: number, y: number) {
+  public hasMovePossible(x: number, y: number): boolean {
     return !!this.movesPossible.some((move) => move.x === x && move.y === y);
   }
 }

@@ -1,7 +1,9 @@
-export { Piece } from "./Piece";
 export { Bishop } from "./Bishop";
-export { Pawn } from "./Pawn";
-export { Rook } from "./Rook";
+export { Board } from "./Board";
 export { King } from "./King";
-export { Queen } from "./Queen";
 export { Knight } from "./Knight";
+export { Pawn } from "./Pawn";
+export { Piece } from "./Piece";
+export { Pieces } from "./Pieces";
+export { Queen } from "./Queen";
+export { Rook } from "./Rook";
