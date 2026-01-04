@@ -1,5 +1,5 @@
 /**
- * Composant principal de l'échiquier
+ * Main chess board component
  */
 
 import { useCallback, useState } from "react";
@@ -33,28 +33,28 @@ const ChessBoard = () => {
   const [validMoves, setValidMoves] = useState<{ x: number; y: number }[]>([]);
   const [showPromotion, setShowPromotion] = useState(false);
 
-  // Récupérer le dernier mouvement pour le highlight
+  // Get the last move for highlighting
   const lastMove = board.getLastMove();
 
-  // Récupérer le roi en échec pour le highlight
+  // Get the king in check for highlighting
   const kingInCheck = board.findKing(currentPlayer);
   const isCheck = gameStatus === "check";
 
   const handleSelectPiece = useCallback(
     (piece: Piece) => {
-      // Ne permettre la sélection que des pièces du joueur actuel
+      // Only allow selecting pieces of the current player
       if (piece.color !== currentPlayer) {
         return;
       }
 
       setSelectedPiece(piece);
-      // Calculer d'abord tous les mouvements possibles
-      piece.calculateMoves(board);
-      // Puis filtrer pour obtenir uniquement les mouvements valides (qui ne mettent pas le roi en échec)
+      // First calculate all possible moves
+      piece.calculateMoves();
+      // Then filter to get only valid moves (that don't put the king in check)
       const moves = getValidMoves(piece);
       setValidMoves(moves);
     },
-    [currentPlayer, board, getValidMoves]
+    [currentPlayer, getValidMoves]
   );
 
   const handleMovePiece = useCallback(
@@ -64,7 +64,7 @@ const ChessBoard = () => {
       const moved = movePiece(selectedPiece, x, y);
 
       if (moved) {
-        // Vérifier s'il y a une promotion en attente
+        // Check if there's a pending promotion
         if (getPendingPromotion()) {
           setShowPromotion(true);
         }
@@ -86,7 +86,7 @@ const ChessBoard = () => {
 
   return (
     <div className="flex gap-6 items-start justify-center p-4">
-      {/* Échiquier */}
+      {/* Chess board */}
       <div className="flex flex-col items-center gap-4">
         {gameStatus === "check" && (
           <div className="text-xl font-semibold text-red-600">{STATUS_MESSAGES.check}</div>
@@ -95,7 +95,7 @@ const ChessBoard = () => {
         {gameStatus === "checkmate" && (
           <div className="text-xl font-semibold text-red-700">
             {STATUS_MESSAGES.checkmate}{" "}
-            {PLAYER_NAMES[currentPlayer === "white" ? "black" : "white"]} gagnent!
+            {PLAYER_NAMES[currentPlayer === "white" ? "black" : "white"]} wins!
           </div>
         )}
 
@@ -141,7 +141,7 @@ const ChessBoard = () => {
         </div>
       </div>
 
-      {/* Panneau latéral */}
+      {/* Side panel */}
       <GamePanel
         currentPlayer={currentPlayer}
         gameStatus={gameStatus}

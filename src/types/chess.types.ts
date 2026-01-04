@@ -1,5 +1,5 @@
 /**
- * Types pour l'application d'échecs
+ * Types for chess application
  */
 
 export type PieceColor = "white" | "black";
@@ -24,9 +24,14 @@ export interface Move {
   promotion?: PieceName;
 }
 
+export interface CapturedPiece {
+  piece: PieceName;
+  id: string;
+}
+
 export interface CapturedPieces {
-  white: PieceName[];
-  black: PieceName[];
+  white: CapturedPiece[];
+  black: CapturedPiece[];
 }
 
 export interface PendingPromotion {

@@ -1,4 +1,3 @@
-import type { Board } from "./Board";
 import { Piece } from "./Piece";
 
 export class Rook extends Piece {
@@ -6,9 +5,9 @@ export class Rook extends Piece {
     super("rook", x, y, color);
   }
 
-  public calculateMoves(board?: Board): void {
+  public calculateMoves(): void {
     this.movesPossible = [];
-    this.canMoveHorizontally(8, board);
-    this.canMoveVertically(8, board);
+    this.canMoveHorizontally(8);
+    this.canMoveVertically(8);
   }
 }

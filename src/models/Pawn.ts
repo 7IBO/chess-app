@@ -1,4 +1,3 @@
-import type { Board } from "./Board";
 import { Piece } from "./Piece";
 
 export class Pawn extends Piece {
@@ -6,38 +5,38 @@ export class Pawn extends Piece {
     super("pawn", x, y, color);
   }
 
-  public calculateMoves(board?: Board): void {
-    // Réinitialiser les mouvements possibles
+  public calculateMoves(): void {
+    // Reset possible moves
     this.movesPossible = [];
 
     const direction = this.color === "black" ? 1 : -1;
     const startRow = this.color === "black" ? 1 : 6;
 
-    // Mouvement d'une case vers l'avant
+    // Move one square forward
     const oneForward = {
       x: this.position.x,
       y: this.position.y + direction,
     };
 
-    // Vérifier que la case devant est libre
-    if (board && !board.isSquareOccupied(oneForward.x, oneForward.y)) {
+    // Check that the square in front is clear
+    if (this.board && !this.board.isSquareOccupied(oneForward.x, oneForward.y)) {
       this.addMovePossible(oneForward);
 
-      // Mouvement de deux cases au premier coup
+      // Move two squares on first move
       if (this.position.y === startRow && !this.hasMoved) {
         const twoForward = {
           x: this.position.x,
           y: this.position.y + direction * 2,
         };
 
-        // Vérifier que les deux cases sont libres
-        if (!board.isSquareOccupied(twoForward.x, twoForward.y)) {
+        // Check that both squares are clear
+        if (!this.board.isSquareOccupied(twoForward.x, twoForward.y)) {
           this.addMovePossible(twoForward);
         }
       }
     }
 
-    // Captures diagonales
+    // Diagonal captures
     const diagonalLeft = {
       x: this.position.x - 1,
       y: this.position.y + direction,
@@ -47,60 +46,58 @@ export class Pawn extends Piece {
       y: this.position.y + direction,
     };
 
-    // Peut capturer en diagonale s'il y a une pièce adverse
+    // Can capture diagonally if there's an opponent piece
     if (
-      board &&
+      this.board &&
       diagonalLeft.x >= 0 &&
       diagonalLeft.x <= 7 &&
       diagonalLeft.y >= 0 &&
       diagonalLeft.y <= 7 &&
-      board.isSquareOccupiedByOpponent(diagonalLeft.x, diagonalLeft.y, this.color)
+      this.board.isSquareOccupiedByOpponent(diagonalLeft.x, diagonalLeft.y, this.color)
     ) {
       this.addMovePossible(diagonalLeft);
     }
 
     if (
-      board &&
+      this.board &&
       diagonalRight.x >= 0 &&
       diagonalRight.x <= 7 &&
       diagonalRight.y >= 0 &&
       diagonalRight.y <= 7 &&
-      board.isSquareOccupiedByOpponent(diagonalRight.x, diagonalRight.y, this.color)
+      this.board.isSquareOccupiedByOpponent(diagonalRight.x, diagonalRight.y, this.color)
     ) {
       this.addMovePossible(diagonalRight);
     }
 
-    // Prise en passant
-    if (board) {
-      this.checkEnPassant(board, diagonalLeft, direction);
-      this.checkEnPassant(board, diagonalRight, direction);
+    // En passant
+    if (this.board) {
+      this.checkEnPassant(diagonalLeft, direction);
+      this.checkEnPassant(diagonalRight, direction);
     }
   }
 
   /**
-   * Vérifie si la prise en passant est possible
+   * Checks if en passant is possible
    */
-  private checkEnPassant(
-    board: Board,
-    targetSquare: { x: number; y: number },
-    direction: number
-  ): void {
-    const lastMove = board.getLastMove();
+  private checkEnPassant(targetSquare: { x: number; y: number }, direction: number): void {
+    if (!this.board) return;
+
+    const lastMove = this.board.getLastMove();
     if (!lastMove) return;
 
     const { piece: lastPiece, from: lastFrom, to: lastTo } = lastMove;
 
-    // Le dernier mouvement doit être un pion qui a avancé de 2 cases
+    // The last move must be a pawn that advanced 2 squares
     if (lastPiece.name !== "pawn" || Math.abs(lastTo.y - lastFrom.y) !== 2) {
       return;
     }
 
-    // Le pion adverse doit être à côté du pion actuel
+    // The opponent pawn must be next to the current pawn
     if (lastTo.y !== this.position.y || Math.abs(lastTo.x - this.position.x) !== 1) {
       return;
     }
 
-    // Vérifier que la case cible correspond à la prise en passant
+    // Check that target square matches en passant
     if (targetSquare.x === lastTo.x && targetSquare.y === lastTo.y + direction) {
       this.addMovePossible(targetSquare);
     }

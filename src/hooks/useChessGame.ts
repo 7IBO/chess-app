@@ -1,5 +1,5 @@
 /**
- * Hook personnalisé pour gérer la logique du jeu d'échecs
+ * Custom hook to manage chess game logic
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -19,7 +19,7 @@ export function useChessGame(board: Board, _restoredAt: number) {
   });
   const [, forceUpdate] = useState({});
 
-  // Sauvegarder automatiquement l'état du jeu
+  // Automatically save game state
   const saveGameState = useCallback(() => {
     gameStorage
       .saveGame({
@@ -44,7 +44,7 @@ export function useChessGame(board: Board, _restoredAt: number) {
     }
   }, [board]);
 
-  // Synchroniser avec l'état du board au montage et après restauration
+  // Synchronize with board state on mount and after restoration
   useEffect(() => {
     logger.log("Synchronizing with board state...", {
       currentPlayer: board.getCurrentPlayer(),
@@ -63,24 +63,26 @@ export function useChessGame(board: Board, _restoredAt: number) {
       const moved = board.movePiece(piece, x, y);
 
       if (moved) {
-        // Mettre à jour l'historique et les pièces capturées
+        // Update history and captured pieces
         setMoveHistory([...board.getMoveHistory()]);
         setCapturedPieces({ ...board.getCapturedPieces() });
 
-        // Vérifier si promotion en attente
+        // Check if promotion pending
         if (!board.getPendingPromotion()) {
-          // Recalculer les mouvements
-          board.getAllPieces().forEach((p) => p.calculateMoves(board));
+          // Recalculate moves
+          board.getAllPieces().forEach((p) => {
+            p.calculateMoves();
+          });
 
-          // Mettre à jour l'état
+          // Update state
           setCurrentPlayer(board.getCurrentPlayer());
           updateGameStatus();
         }
 
-        // Sauvegarder l'état du jeu
+        // Save game state
         saveGameState();
 
-        // Forcer le re-render
+        // Force re-render
         forceUpdate({});
       }
 
@@ -93,18 +95,20 @@ export function useChessGame(board: Board, _restoredAt: number) {
     (pieceType: "queen" | "rook" | "bishop" | "knight") => {
       board.promotePawn(pieceType);
 
-      // Mettre à jour l'historique et les pièces capturées
+      // Update history and captured pieces
       setMoveHistory([...board.getMoveHistory()]);
       setCapturedPieces({ ...board.getCapturedPieces() });
 
-      // Recalculer les mouvements
-      board.getAllPieces().forEach((piece) => piece.calculateMoves(board));
+      // Recalculate moves
+      board.getAllPieces().forEach((piece) => {
+        piece.calculateMoves();
+      });
 
-      // Mettre à jour l'état
+      // Update state
       setCurrentPlayer(board.getCurrentPlayer());
       updateGameStatus();
 
-      // Sauvegarder l'état du jeu
+      // Save game state
       saveGameState();
 
       forceUpdate({});
@@ -112,7 +116,7 @@ export function useChessGame(board: Board, _restoredAt: number) {
     [board, updateGameStatus, saveGameState]
   );
 
-  // Sauvegarder l'état lors du démontage du composant
+  // Save state on component unmount
   useEffect(() => {
     return () => {
       saveGameState();
@@ -131,10 +135,10 @@ export function useChessGame(board: Board, _restoredAt: number) {
   );
 
   const resetGame = useCallback(() => {
-    // Effacer les données IndexedDB
+    // Clear IndexedDB data
     gameStorage.clearGame().catch(logger.error);
 
-    // Recharger la page pour réinitialiser complètement le board
+    // Reload the page to completely reset the board
     window.location.reload();
   }, []);
 
@@ -142,16 +146,16 @@ export function useChessGame(board: Board, _restoredAt: number) {
     if (board.canUndo()) {
       board.undoMove();
 
-      // Synchroniser l'état
+      // Synchronize state
       setCurrentPlayer(board.getCurrentPlayer());
       setMoveHistory([...board.getMoveHistory()]);
       setCapturedPieces({ ...board.getCapturedPieces() });
       updateGameStatus();
 
-      // Sauvegarder l'état
+      // Save state
       saveGameState();
 
-      // Forcer le re-render
+      // Force re-render
       forceUpdate({});
     }
   }, [board, updateGameStatus, saveGameState]);
@@ -160,16 +164,16 @@ export function useChessGame(board: Board, _restoredAt: number) {
     if (board.canRedo()) {
       board.redoMove();
 
-      // Synchroniser l'état
+      // Synchronize state
       setCurrentPlayer(board.getCurrentPlayer());
       setMoveHistory([...board.getMoveHistory()]);
       setCapturedPieces({ ...board.getCapturedPieces() });
       updateGameStatus();
 
-      // Sauvegarder l'état
+      // Save state
       saveGameState();
 
-      // Forcer le re-render
+      // Force re-render
       forceUpdate({});
     }
   }, [board, updateGameStatus, saveGameState]);

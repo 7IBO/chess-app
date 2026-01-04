@@ -1,5 +1,5 @@
 /**
- * Affiche les informations du joueur actuel et le statut de la partie
+ * Displays current player information and game status
  */
 
 import { memo } from "react";
@@ -17,7 +17,7 @@ export const CurrentPlayerInfo = memo(function CurrentPlayerInfo({
 }: CurrentPlayerInfoProps) {
   return (
     <div className="bg-linear-to-br from-slate-700 to-slate-800 p-4 rounded-xl shadow-lg border border-slate-600">
-      <h3 className="font-bold text-lg mb-3 text-white">Tour actuel</h3>
+      <h3 className="font-bold text-lg mb-3 text-white">Current Turn</h3>
       <div className="flex items-center gap-3">
         <div
           className={`w-6 h-6 rounded-full shadow-md transition-all ${

@@ -1,7 +1,7 @@
 import { Bishop, King, Knight, Pawn, Pieces, Queen, Rook } from "@/models";
 
 /**
- * Crée un nouvel ensemble de pièces dans leur position initiale
+ * Creates a new set of pieces in their initial position
  */
 export function createInitialPieces(): Pieces {
   return new Pieces([

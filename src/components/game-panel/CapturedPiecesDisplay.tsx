@@ -1,5 +1,5 @@
 /**
- * Affiche les pièces capturées pour chaque joueur
+ * Displays captured pieces for each player
  */
 
 import { memo } from "react";
@@ -14,42 +14,42 @@ export const CapturedPiecesDisplay = memo(function CapturedPiecesDisplay({
 }: CapturedPiecesDisplayProps) {
   return (
     <div className="bg-linear-to-br from-slate-700 to-slate-800 p-4 rounded-xl shadow-lg border border-slate-600">
-      <h3 className="font-bold text-lg mb-3 text-white">Pièces capturées</h3>
+      <h3 className="font-bold text-lg mb-3 text-white">Captured Pieces</h3>
 
-      {/* Pièces blanches capturées */}
+      {/* White pieces captured */}
       <div className="mb-3">
-        <div className="text-sm font-semibold mb-2 text-slate-300">Blancs:</div>
+        <div className="text-sm font-semibold mb-2 text-slate-300">White:</div>
         <div className="flex flex-wrap gap-1.5 min-h-7">
           {capturedPieces.white.length > 0 ? (
-            capturedPieces.white.map((piece, idx) => (
+            capturedPieces.white.map((captured) => (
               <img
-                key={idx}
-                src={`/assets/${piece}-white.png`}
-                alt={piece}
+                key={captured.id}
+                src={`/assets/${captured.piece}-white.png`}
+                alt={captured.piece}
                 className="w-7 h-7 opacity-60 hover:opacity-100 transition-opacity"
               />
             ))
           ) : (
-            <span className="text-slate-500 text-sm italic">Aucune</span>
+            <span className="text-slate-500 text-sm italic">None</span>
           )}
         </div>
       </div>
 
-      {/* Pièces noires capturées */}
+      {/* Black pieces captured */}
       <div>
-        <div className="text-sm font-semibold mb-2 text-slate-300">Noirs:</div>
+        <div className="text-sm font-semibold mb-2 text-slate-300">Black:</div>
         <div className="flex flex-wrap gap-1.5 min-h-7">
           {capturedPieces.black.length > 0 ? (
-            capturedPieces.black.map((piece, idx) => (
+            capturedPieces.black.map((captured) => (
               <img
-                key={idx}
-                src={`/assets/${piece}-black.png`}
-                alt={piece}
+                key={captured.id}
+                src={`/assets/${captured.piece}-black.png`}
+                alt={captured.piece}
                 className="w-7 h-7 opacity-60 hover:opacity-100 transition-opacity"
               />
             ))
           ) : (
-            <span className="text-slate-500 text-sm italic">Aucune</span>
+            <span className="text-slate-500 text-sm italic">None</span>
           )}
         </div>
       </div>

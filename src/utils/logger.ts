@@ -1,5 +1,5 @@
 /**
- * Logger conditionnel - n'affiche les logs qu'en développement
+ * Conditional logger - only displays logs in development
  */
 
 const isDev = import.meta.env.DEV;
@@ -12,7 +12,7 @@ export const logger = {
     if (isDev) console.warn(...args);
   },
   error: (...args: unknown[]) => {
-    // Les erreurs sont toujours affichées
+    // Errors are always displayed
     console.error(...args);
   },
   debug: (...args: unknown[]) => {

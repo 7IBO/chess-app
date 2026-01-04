@@ -7,8 +7,10 @@ describe("Board", () => {
 
   beforeEach(() => {
     board = new Board(createInitialPieces());
-    // Calculer les mouvements initiaux
-    board.getAllPieces().forEach((piece) => piece.calculateMoves(board));
+    // Calculate initial moves
+    board.getAllPieces().forEach((piece) => {
+      piece.calculateMoves();
+    });
   });
 
   describe("Initialization", () => {

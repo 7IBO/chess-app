@@ -9,7 +9,16 @@ export class Piece {
 
   public color: "black" | "white";
 
-  protected canMoveDiagonally(depth = 8, board?: Board): void {
+  protected board?: Board;
+
+  /**
+   * Sets the board reference for this piece
+   */
+  setBoard(board: Board): void {
+    this.board = board;
+  }
+
+  protected canMoveDiagonally(depth = 8): void {
     const directions = [
       { dx: -1, dy: 1 }, // BOTTOM LEFT
       { dx: 1, dy: 1 }, // BOTTOM RIGHT
@@ -17,42 +26,38 @@ export class Piece {
       { dx: 1, dy: -1 }, // TOP RIGHT
     ];
 
-    this.addMovesInDirections(directions, depth, board);
+    this.addMovesInDirections(directions, depth);
   }
 
-  protected canMoveHorizontally(depth = 8, board?: Board): void {
+  protected canMoveHorizontally(depth = 8): void {
     const directions = [
       { dx: 0, dy: -1 }, // LEFT
       { dx: 0, dy: 1 }, // RIGHT
     ];
 
-    this.addMovesInDirections(directions, depth, board);
+    this.addMovesInDirections(directions, depth);
   }
 
-  protected canMoveVertically(depth = 8, board?: Board): void {
+  protected canMoveVertically(depth = 8): void {
     const directions = [
       { dx: -1, dy: 0 }, // UP
       { dx: 1, dy: 0 }, // DOWN
     ];
 
-    this.addMovesInDirections(directions, depth, board);
+    this.addMovesInDirections(directions, depth);
   }
 
   /**
-   * Ajoute les mouvements dans les directions spécifiées
-   * S'arrête si une pièce bloque le chemin
+   * Adds moves in the specified directions
+   * Stops if a piece blocks the path
    */
-  protected addMovesInDirections(
-    directions: { dx: number; dy: number }[],
-    depth: number,
-    board?: Board
-  ): void {
+  protected addMovesInDirections(directions: { dx: number; dy: number }[], depth: number): void {
     for (const { dx, dy } of directions) {
       for (let i = 1; i <= depth; i++) {
         const newX = this.x + dx * i;
         const newY = this.y + dy * i;
 
-        // Sortie du plateau
+        // Out of board
         if (
           newX < MIN_POSITION ||
           newX > MAX_POSITION ||
@@ -61,15 +66,15 @@ export class Piece {
         )
           break;
 
-        if (board) {
-          const pieceAtPosition = board.getPieceAt(newX, newY);
+        if (this.board) {
+          const pieceAtPosition = this.board.getPieceAt(newX, newY);
 
           if (pieceAtPosition) {
-            // Si c'est une pièce adverse, on peut la capturer
+            // If it's an opponent piece, we can capture it
             if (pieceAtPosition.color !== this.color) {
               this.addMovePossible({ x: newX, y: newY });
             }
-            break; // On ne peut pas aller plus loin dans cette direction
+            break; // We can't go further in this direction
           }
         }
 
@@ -98,7 +103,7 @@ export class Piece {
   }
 
   /**
-   * Restaure l'état hasMoved (utilisé pour annuler des mouvements simulés)
+   * Restores hasMoved state (used to undo simulated moves)
    */
   setHasMoved(value: boolean): void {
     this._hasMoved = value;
@@ -117,15 +122,15 @@ export class Piece {
   }
 
   /**
-   * Calcule les mouvements de base pour le roi (sans roque)
-   * Utilisé pour éviter la récursion infinie lors de la vérification d'attaque
+   * Calculates basic moves for the king (without castling)
+   * Used to avoid infinite recursion when checking for attacks
    */
-  public calculateBasicKingMoves(board?: Board): void {
+  public calculateBasicKingMoves(): void {
     if (this.name === "king") {
       this.movesPossible = [];
-      this.canMoveDiagonally(1, board);
-      this.canMoveHorizontally(1, board);
-      this.canMoveVertically(1, board);
+      this.canMoveDiagonally(1);
+      this.canMoveHorizontally(1);
+      this.canMoveVertically(1);
     }
   }
 
@@ -143,12 +148,12 @@ export class Piece {
   }
 
   /**
-   * Calcule les mouvements possibles pour cette pièce
-   * À surcharger dans les classes filles
+   * Calculates possible moves for this piece
+   * To be overridden in subclasses
    */
-  public calculateMoves(_board?: Board): void {
-    // Par défaut, ne fait rien
-    // Les classes filles surchargent cette méthode
+  public calculateMoves(): void {
+    // By default, does nothing
+    // Child classes override this method
   }
 
   public getMovesPossible(): { x: number; y: number }[] {

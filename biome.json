@@ -19,13 +19,19 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noArrayIndexKey": "warn"
       },
       "correctness": {
         "noUnusedVariables": "warn"
       },
+      "style": {
+        "noNonNullAssertion": "warn"
+      },
       "a11y": {
         "useKeyWithClickEvents": "warn",
+        "noStaticElementInteractions": "warn",
+        "useSemanticElements": "warn",
         "useValidAriaValues": "error",
         "useAriaPropsForRole": "error"
       }

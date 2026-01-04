@@ -1,5 +1,5 @@
 /**
- * Context pour partager l'instance du board dans l'application
+ * Context to share board instance in the application
  */
 
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
@@ -19,15 +19,15 @@ export function BoardProvider({ children }: { children: ReactNode }) {
   const [boardContext, setBoardContext] = useState<BoardContextValue | null>(null);
 
   useEffect(() => {
-    // Créer une instance du board avec des pièces fraîches
+    // Create a board instance with fresh pieces
     const boardInstance = new Board(createInitialPieces());
 
-    // Initialiser les mouvements
-    boardInstance.getAllPieces().forEach((piece) => {
-      piece.calculateMoves(boardInstance);
-    });
+    // Initialize moves
+    for (const piece of boardInstance.getAllPieces()) {
+      piece.calculateMoves();
+    }
 
-    // Charger l'état sauvegardé depuis IndexedDB
+    // Load saved state from IndexedDB
     gameStorage
       .loadGame()
       .then((savedState) => {
@@ -43,11 +43,11 @@ export function BoardProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
-  // Ne pas afficher le board tant qu'il n'est pas chargé
+  // Don't display the board until it's loaded
   if (!boardContext) {
     return (
       <div className="w-screen h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Chargement...</div>
+        <div className="text-white text-xl">Loading...</div>
       </div>
     );
   }

@@ -1,4 +1,3 @@
-import type { Board } from "./Board";
 import { Piece } from "./Piece";
 
 export class Bishop extends Piece {
@@ -6,8 +5,8 @@ export class Bishop extends Piece {
     super("bishop", x, y, color);
   }
 
-  public calculateMoves(board?: Board): void {
+  public calculateMoves(): void {
     this.movesPossible = [];
-    this.canMoveDiagonally(8, board);
+    this.canMoveDiagonally(8);
   }
 }

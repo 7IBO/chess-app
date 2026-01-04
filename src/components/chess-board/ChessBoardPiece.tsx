@@ -1,5 +1,5 @@
 /**
- * Composant représentant une pièce d'échecs draggable
+ * Component representing a draggable chess piece
  */
 
 import { type MouseEvent, memo, useEffect, useRef, useState } from "react";
@@ -51,7 +51,7 @@ const ChessBoardPiece = memo(function ChessBoardPiece({
           .map((item) => parseInt(item, 10));
 
         // Keep the selection if it's not a possible move
-        if (piece.hasMovePossible(positionAttr[0], positionAttr[1])) {
+        if (positionAttr && piece.hasMovePossible(positionAttr[0], positionAttr[1])) {
           onMovePiece(positionAttr[0], positionAttr[1]);
         }
       }
@@ -68,9 +68,18 @@ const ChessBoardPiece = memo(function ChessBoardPiece({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${piece.color} ${piece.name}`}
       className={`w-full h-full cursor-grab z-10 relative ${isDragging ? "z-1000" : ""}`}
       onClick={onSelectPiece}
       onMouseDown={handleMouseDown}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelectPiece();
+        }
+      }}
       style={{
         backgroundImage: `url(./assets/${piece.image})`,
         backgroundSize: "cover",

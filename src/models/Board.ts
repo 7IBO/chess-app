@@ -25,7 +25,7 @@ export class Board {
   } | null = null;
   private pendingPromotion: { pawn: Piece; x: number; y: number } | null = null;
   private moveHistory: Move[] = [];
-  private moveHistoryIndex: number = -1; // Index pour undo/redo
+  private moveHistoryIndex: number = -1; // Index for undo/redo
   private capturedPieces: CapturedPieces = {
     white: [],
     black: [],
@@ -33,74 +33,79 @@ export class Board {
 
   constructor(pieces: Pieces) {
     this.pieces = pieces;
-    this.currentPlayer = "white"; // Les blancs commencent
+    this.currentPlayer = "white"; // White moves first
+
+    // Set board reference on all pieces
+    for (const piece of this.pieces.getAll()) {
+      piece.setBoard(this);
+    }
   }
 
   /**
-   * Récupère le joueur actuel
+   * Gets the current player
    */
   getCurrentPlayer(): "white" | "black" {
     return this.currentPlayer;
   }
 
   /**
-   * Récupère le dernier mouvement effectué
+   * Gets the last move made
    */
   getLastMove() {
     return this.lastMove;
   }
 
   /**
-   * Récupère la promotion en attente
+   * Gets the pending promotion
    */
   getPendingPromotion() {
     return this.pendingPromotion;
   }
 
   /**
-   * Récupère l'historique des mouvements
+   * Gets the move history
    */
   getMoveHistory(): Move[] {
     return this.moveHistory;
   }
 
   /**
-   * Récupère les pièces capturées
+   * Gets the captured pieces
    */
   getCapturedPieces(): CapturedPieces {
     return this.capturedPieces;
   }
 
   /**
-   * Change de joueur
+   * Switches the player
    */
   private switchPlayer(): void {
     this.currentPlayer = this.currentPlayer === "white" ? "black" : "white";
   }
 
   /**
-   * Récupère toutes les pièces sur le plateau
+   * Gets all pieces on the board
    */
   getAllPieces(): Piece[] {
     return this.pieces.getAll();
   }
 
   /**
-   * Récupère une pièce à une position donnée
+   * Gets a piece at a given position
    */
   getPieceAt(x: number, y: number): Piece | undefined {
     return this.pieces.get(x, y);
   }
 
   /**
-   * Vérifie si une case est occupée
+   * Checks if a square is occupied
    */
   isSquareOccupied(x: number, y: number): boolean {
     return !!this.pieces.get(x, y);
   }
 
   /**
-   * Vérifie si une case est occupée par une pièce adverse
+   * Checks if a square is occupied by an opponent piece
    */
   isSquareOccupiedByOpponent(x: number, y: number, color: "black" | "white"): boolean {
     const piece = this.pieces.get(x, y);
@@ -108,7 +113,7 @@ export class Board {
   }
 
   /**
-   * Vérifie si une case est occupée par une pièce alliée
+   * Checks if a square is occupied by an ally piece
    */
   isSquareOccupiedByAlly(x: number, y: number, color: "black" | "white"): boolean {
     const piece = this.pieces.get(x, y);
@@ -116,20 +121,20 @@ export class Board {
   }
 
   /**
-   * Calcule les mouvements valides pour une pièce donnée
+   * Calculates valid moves for a given piece
    */
   getValidMoves(piece: Piece): { x: number; y: number }[] {
-    // Chaque pièce définit ses mouvements possibles
+    // Each piece defines its possible moves
     const possibleMoves = piece.getMovesPossible();
 
-    // Le Board filtre selon les règles (collisions, captures, échec, etc.)
+    // The Board filters according to the rules (collisions, captures, check, etc.)
     return possibleMoves.filter(({ x, y }) => {
-      // Vérifier que la case n'est pas occupée par une pièce alliée
+      // Check that the square is not occupied by an ally piece
       if (this.isSquareOccupiedByAlly(x, y, piece.color)) {
         return false;
       }
 
-      // Vérifier que le mouvement ne met pas son propre roi en échec
+      // Check that the move does not put its own king in check
       if (this.wouldMovePutKingInCheck(piece, x, y)) {
         return false;
       }
@@ -139,10 +144,10 @@ export class Board {
   }
 
   /**
-   * Déplace une pièce vers une nouvelle position
+   * Moves a piece to a new position
    */
   movePiece(piece: Piece, x: number, y: number): boolean {
-    // Vérifier que c'est le tour du joueur
+    // Check that it's the player's turn
     if (piece.color !== this.currentPlayer) {
       return false;
     }
@@ -154,16 +159,16 @@ export class Board {
       return false;
     }
 
-    // Sauvegarder la position de départ pour l'historique
+    // Save the starting position for the history
     const fromX = piece.position.x;
     const fromY = piece.position.y;
 
-    // Si un nouveau mouvement est fait après avoir annulé, supprimer l'historique après l'index actuel
+    // If a new move is made after undoing, delete the history after the current index
     if (this.moveHistoryIndex < this.moveHistory.length - 1) {
       this.moveHistory = this.moveHistory.slice(0, this.moveHistoryIndex + 1);
     }
 
-    // Gérer le roque (castling)
+    // Handle castling
     if (piece.name === "king" && Math.abs(x - piece.position.x) === CASTLING_KING_MOVE_DISTANCE) {
       this.handleCastling(piece, x, y);
       this.lastMove = { piece, from: { x: fromX, y: fromY }, to: { x, y } };
@@ -179,11 +184,14 @@ export class Board {
       return true;
     }
 
-    // Gérer la prise en passant
+    // Handle en passant
     if (piece.name === "pawn" && this.isEnPassantCapture(piece, x, y)) {
       const capturedPawn = this.handleEnPassant(piece, x, y);
       if (capturedPawn) {
-        this.capturedPieces[capturedPawn.color].push(capturedPawn.name as PieceName);
+        this.capturedPieces[capturedPawn.color].push({
+          piece: capturedPawn.name as PieceName,
+          id: crypto.randomUUID(),
+        });
       }
       this.lastMove = { piece, from: { x: fromX, y: fromY }, to: { x, y } };
       this.moveHistory.push({
@@ -199,24 +207,27 @@ export class Board {
       return true;
     }
 
-    // Capturer la pièce adverse si présente
+    // Capture the opponent piece if present
     const targetPiece = this.pieces.get(x, y);
     const captured = !!targetPiece && targetPiece.color !== piece.color;
-    if (captured) {
-      this.capturedPieces[targetPiece?.color].push(targetPiece?.name as PieceName);
-      this.pieces.remove(targetPiece!);
+    if (captured && targetPiece) {
+      this.capturedPieces[targetPiece.color].push({
+        piece: targetPiece.name as PieceName,
+        id: crypto.randomUUID(),
+      });
+      this.pieces.remove(targetPiece);
     }
 
-    // Déplacer la pièce
+    // Move the piece
     piece.move(x, y);
 
-    // Enregistrer le mouvement
+    // Record the move
     this.lastMove = { piece, from: { x: fromX, y: fromY }, to: { x, y } };
 
-    // Vérifier la promotion du pion
+    // Check for pawn promotion
     if (piece.name === "pawn" && (y === WHITE_PROMOTION_RANK || y === BLACK_PROMOTION_RANK)) {
       this.pendingPromotion = { pawn: piece, x, y };
-      // Ajouter à l'historique (le type de promotion sera ajouté après)
+      // Add to history (promotion type will be added later)
       this.moveHistory.push({
         piece: piece.name as PieceName,
         color: piece.color,
@@ -225,11 +236,11 @@ export class Board {
         captured,
       });
       this.moveHistoryIndex = this.moveHistory.length - 1;
-      // Ne pas changer de joueur encore, attendre la promotion
+      // Don't switch players yet, wait for promotion
       return true;
     }
 
-    // Ajouter à l'historique
+    // Add to history
     this.moveHistory.push({
       piece: piece.name as PieceName,
       color: piece.color,
@@ -239,24 +250,24 @@ export class Board {
     });
     this.moveHistoryIndex = this.moveHistory.length - 1;
 
-    // Changer de joueur
+    // Switch player
     this.switchPlayer();
 
     return true;
   }
 
   /**
-   * Promeut un pion en une autre pièce
+   * Promotes a pawn to another piece
    */
   promotePawn(pieceType: "queen" | "rook" | "bishop" | "knight"): boolean {
     if (!this.pendingPromotion) return false;
 
     const { pawn, x, y } = this.pendingPromotion;
 
-    // Retirer le pion
+    // Remove the pawn
     this.pieces.remove(pawn);
 
-    // Créer la nouvelle pièce
+    // Create the new piece
     let newPiece: Piece;
     switch (pieceType) {
       case "queen":
@@ -272,58 +283,61 @@ export class Board {
         newPiece = new Knight(x, y, pawn.color);
         break;
       default:
-        // Par défaut, promouvoir en dame
+        // By default, promote to queen
         newPiece = new Queen(x, y, pawn.color);
         break;
     }
 
-    // Ajouter la nouvelle pièce
+    // Add the new piece
     this.pieces.add(newPiece);
 
-    // Mettre à jour l'historique avec le type de promotion
+    // Set board reference on the new piece
+    newPiece.setBoard(this);
+
+    // Update history with promotion type
     if (this.moveHistory.length > 0) {
       const lastMove = this.moveHistory[this.moveHistory.length - 1];
       lastMove.promotion = pieceType;
     }
 
-    // Réinitialiser la promotion en attente
+    // Reset pending promotion
     this.pendingPromotion = null;
 
-    // Changer de joueur
+    // Switch player
     this.switchPlayer();
 
     return true;
   }
 
   /**
-   * Gère le mouvement de roque
+   * Handles castling move
    */
   private handleCastling(king: Piece, kingX: number, kingY: number): void {
     const direction = kingX > king.position.x ? 1 : -1;
     const rookX = direction === 1 ? MAX_POSITION : MIN_POSITION;
     const newRookX = kingX - direction;
 
-    // Récupérer la tour
+    // Get the rook
     const rook = this.pieces.get(rookX, kingY);
 
     if (rook) {
-      // Déplacer le roi
+      // Move the king
       king.move(kingX, kingY);
 
-      // Déplacer la tour
+      // Move the rook
       rook.move(newRookX, kingY);
     }
   }
 
   /**
-   * Vérifie si un mouvement est une prise en passant
+   * Checks if a move is an en passant capture
    */
   private isEnPassantCapture(pawn: Piece, toX: number, toY: number): boolean {
     if (!this.lastMove) return false;
 
     const { piece: lastPiece, from: lastFrom, to: lastTo } = this.lastMove;
 
-    // Le dernier mouvement doit être un pion qui a avancé de 2 cases
+    // The last move must be a pawn that advanced 2 squares
     if (
       lastPiece.name !== "pawn" ||
       Math.abs(lastTo.y - lastFrom.y) !== EN_PASSANT_PAWN_MOVE_DISTANCE
@@ -331,38 +345,38 @@ export class Board {
       return false;
     }
 
-    // Le pion capturant doit être à côté du pion adverse
+    // The capturing pawn must be next to the opponent pawn
     if (pawn.position.y !== lastTo.y || Math.abs(pawn.position.x - lastTo.x) !== 1) {
       return false;
     }
 
-    // La case cible doit être derrière le pion adverse
+    // The target square must be behind the opponent pawn
     const direction = pawn.color === "white" ? -1 : 1;
     return toX === lastTo.x && toY === lastTo.y + direction;
   }
 
   /**
-   * Gère la prise en passant
+   * Handles en passant
    */
   private handleEnPassant(pawn: Piece, toX: number, toY: number): Piece | undefined {
     if (!this.lastMove) return;
 
     const { to: lastTo } = this.lastMove;
 
-    // Retirer le pion capturé (qui est sur la même rangée que le pion capturant)
+    // Remove the captured pawn (which is on the same rank as the capturing pawn)
     const capturedPawn = this.pieces.get(lastTo.x, lastTo.y);
     if (capturedPawn) {
       this.pieces.remove(capturedPawn);
     }
 
-    // Déplacer le pion capturant
+    // Move the capturing pawn
     pawn.move(toX, toY);
 
     return capturedPawn;
   }
 
   /**
-   * Vérifie si le chemin est libre (pour les pièces qui se déplacent en ligne)
+   * Checks if the path is clear (for pieces that move in straight lines)
    */
   isPathClear(fromX: number, fromY: number, toX: number, toY: number): boolean {
     const dx = Math.sign(toX - fromX);
@@ -383,14 +397,14 @@ export class Board {
   }
 
   /**
-   * Trouve le roi d'une couleur donnée
+   * Finds the king of a given color
    */
   findKing(color: "white" | "black"): Piece | undefined {
     return this.pieces.getAll().find((piece) => piece.name === "king" && piece.color === color);
   }
 
   /**
-   * Vérifie si une case est attaquée par une couleur donnée
+   * Checks if a square is attacked by a given color
    */
   isSquareAttacked(
     x: number,
@@ -401,18 +415,18 @@ export class Board {
     const attackers = this.pieces.getAll().filter((piece) => piece.color === byColor);
 
     for (const attacker of attackers) {
-      // Pour éviter la récursion infinie, ne pas calculer le roque lors de la vérification d'attaque
+      // To avoid infinite recursion, don't calculate castling when checking for attacks
       if (attacker.name === "king" && ignoreKingCastling) {
-        // Calculer uniquement les mouvements de base du roi (sans roque)
-        attacker.calculateBasicKingMoves(this);
+        // Calculate only basic king moves (without castling)
+        attacker.calculateBasicKingMoves();
       } else {
-        // Calculer les mouvements possibles de l'attaquant
-        attacker.calculateMoves(this);
+        // Calculate possible moves of the attacker
+        attacker.calculateMoves();
       }
 
       const moves = attacker.getMovesPossible();
 
-      // Vérifier si la case (x, y) est dans les mouvements possibles
+      // Check if square (x, y) is in the possible moves
       if (moves.some((move) => move.x === x && move.y === y)) {
         return true;
       }
@@ -422,7 +436,7 @@ export class Board {
   }
 
   /**
-   * Vérifie si le roi d'une couleur est en échec
+   * Checks if the king of a color is in check
    */
   isKingInCheck(color: "white" | "black"): boolean {
     const king = this.findKing(color);
@@ -433,29 +447,29 @@ export class Board {
   }
 
   /**
-   * Vérifie si un mouvement met son propre roi en échec
+   * Checks if a move puts its own king in check
    */
   private wouldMovePutKingInCheck(piece: Piece, toX: number, toY: number): boolean {
     const fromX = piece.position.x;
     const fromY = piece.position.y;
-    const hadMoved = piece.hasMoved; // Sauvegarder l'état hasMoved
+    const hadMoved = piece.hasMoved; // Save hasMoved state
 
-    // Sauvegarder la pièce capturée (si elle existe)
+    // Save the captured piece (if it exists)
     const capturedPiece = this.pieces.get(toX, toY);
 
     try {
-      // Simuler le mouvement
+      // Simulate the move
       if (capturedPiece) {
         this.pieces.remove(capturedPiece);
       }
       piece.move(toX, toY);
 
-      // Vérifier si le roi est en échec
+      // Check if the king is in check
       return this.isKingInCheck(piece.color);
     } finally {
-      // Toujours annuler le mouvement même en cas d'exception
+      // Always undo the move even in case of exception
       piece.move(fromX, fromY);
-      piece.setHasMoved(hadMoved); // Restaurer l'état hasMoved
+      piece.setHasMoved(hadMoved); // Restore hasMoved state
       if (capturedPiece) {
         this.pieces.add(capturedPiece);
       }
@@ -463,34 +477,34 @@ export class Board {
   }
 
   /**
-   * Vérifie si c'est échec et mat pour une couleur donnée
+   * Checks if it's checkmate for a given color
    */
   isCheckmate(color: "white" | "black"): boolean {
-    // Vérifier d'abord si le roi est en échec
+    // First check if the king is in check
     if (!this.isKingInCheck(color)) {
       return false;
     }
 
-    // Vérifier si au moins un mouvement valide existe
+    // Check if at least one valid move exists
     const pieces = this.pieces.getAll().filter((p) => p.color === color);
 
     for (const piece of pieces) {
-      piece.calculateMoves(this);
+      piece.calculateMoves();
       const validMoves = this.getValidMoves(piece);
 
       if (validMoves.length > 0) {
-        return false; // Il existe au moins un mouvement valide
+        return false; // There is at least one valid move
       }
     }
 
-    return true; // Aucun mouvement valide, c'est échec et mat
+    return true; // No valid move, it's checkmate
   }
 
   /**
-   * Vérifie si c'est pat (stalemate) pour une couleur donnée
+   * Checks if it's stalemate for a given color
    */
   isStalemate(color: "white" | "black"): boolean {
-    // Le roi n'est PAS en échec mais aucun mouvement valide n'est possible
+    // The king is NOT in check but no valid move is possible
     if (this.isKingInCheck(color)) {
       return false;
     }
@@ -498,19 +512,19 @@ export class Board {
     const pieces = this.pieces.getAll().filter((p) => p.color === color);
 
     for (const piece of pieces) {
-      piece.calculateMoves(this);
+      piece.calculateMoves();
       const validMoves = this.getValidMoves(piece);
 
       if (validMoves.length > 0) {
-        return false; // Il existe au moins un mouvement valide
+        return false; // There is at least one valid move
       }
     }
 
-    return true; // Aucun mouvement valide et pas en échec, c'est pat
+    return true; // No valid move and not in check, it's stalemate
   }
 
   /**
-   * Rejoue un mouvement depuis l'historique pour restaurer l'état
+   * Replays a move from history to restore state
    */
   replayMove(move: Move): boolean {
     const piece = this.pieces.get(move.from.x, move.from.y);
@@ -520,16 +534,16 @@ export class Board {
       return false;
     }
 
-    // Vérifier que la pièce correspond
+    // Check that the piece matches
     if (piece.name !== move.piece || piece.color !== move.color) {
       console.error(`Piece mismatch at ${move.from.x}, ${move.from.y}`);
       return false;
     }
 
-    // Rejouer le mouvement
+    // Replay the move
     const success = this.movePiece(piece, move.to.x, move.to.y);
 
-    // Gérer la promotion si nécessaire
+    // Handle promotion if necessary
     if (success && move.promotion && this.pendingPromotion) {
       this.promotePawn(move.promotion as "queen" | "rook" | "bishop" | "knight");
     }
@@ -538,10 +552,10 @@ export class Board {
   }
 
   /**
-   * Restaure l'état du plateau à partir d'un historique de mouvements
+   * Restores the board state from a move history
    */
   restoreFromHistory(moves: Move[]): void {
-    // Réinitialiser complètement le board avec de nouvelles pièces fraîches
+    // Completely reset the board with fresh new pieces
     this.pieces = createInitialPieces();
     this.moveHistory = [];
     this.capturedPieces = { white: [], black: [] };
@@ -549,71 +563,80 @@ export class Board {
     this.pendingPromotion = null;
     this.currentPlayer = "white";
 
-    // Recalculer les mouvements pour les nouvelles pièces
-    this.getAllPieces().forEach((piece) => piece.calculateMoves(this));
+    // Set board reference on all fresh pieces
+    for (const piece of this.getAllPieces()) {
+      piece.setBoard(this);
+    }
 
-    // Rejouer chaque mouvement
+    // Recalculate moves for new pieces
+    for (const piece of this.getAllPieces()) {
+      piece.calculateMoves();
+    }
+
+    // Replay each move
     for (const move of moves) {
       this.replayMove(move);
     }
 
-    // Recalculer les mouvements possibles pour toutes les pièces après restauration
-    this.getAllPieces().forEach((piece) => piece.calculateMoves(this));
+    // Recalculate possible moves for all pieces after restoration
+    for (const piece of this.getAllPieces()) {
+      piece.calculateMoves();
+    }
   }
 
   /**
-   * Annule le dernier mouvement
+   * Undoes the last move
    */
   undoMove(): boolean {
     if (this.moveHistoryIndex < 0) return false;
 
-    // Réduire l'index
+    // Decrease index
     this.moveHistoryIndex--;
 
-    // Sauvegarder l'historique complet
+    // Save full history
     const fullHistory = [...this.moveHistory];
 
-    // Restaurer l'état à partir de l'historique tronqué
+    // Restore state from truncated history
     const movesToReplay = fullHistory.slice(0, this.moveHistoryIndex + 1);
     this.restoreFromHistory(movesToReplay);
 
-    // Restaurer l'historique complet
+    // Restore full history
     this.moveHistory = fullHistory;
 
     return true;
   }
 
   /**
-   * Refait le mouvement annulé
+   * Redoes the undone move
    */
   redoMove(): boolean {
     if (this.moveHistoryIndex >= this.moveHistory.length - 1) return false;
 
-    // Augmenter l'index
+    // Increase index
     this.moveHistoryIndex++;
 
-    // Sauvegarder l'historique complet
+    // Save full history
     const fullHistory = [...this.moveHistory];
 
-    // Rejouer le mouvement suivant
+    // Replay the next move
     const nextMove = fullHistory[this.moveHistoryIndex];
     const success = this.replayMove(nextMove);
 
-    // Restaurer l'historique complet
+    // Restore full history
     this.moveHistory = fullHistory;
 
     return success;
   }
 
   /**
-   * Vérifie si on peut annuler
+   * Checks if we can undo
    */
   canUndo(): boolean {
     return this.moveHistoryIndex >= 0;
   }
 
   /**
-   * Vérifie si on peut refaire
+   * Checks if we can redo
    */
   canRedo(): boolean {
     return this.moveHistoryIndex < this.moveHistory.length - 1;

@@ -1,4 +1,3 @@
-import type { Board } from "./Board";
 import { Piece } from "./Piece";
 
 export class Knight extends Piece {
@@ -6,11 +5,11 @@ export class Knight extends Piece {
     super("knight", x, y, color);
   }
 
-  public calculateMoves(board?: Board): void {
-    // Réinitialiser les mouvements possibles
+  public calculateMoves(): void {
+    // Reset possible moves
     this.movesPossible = [];
 
-    // Tous les mouvements possibles du cavalier (en L)
+    // All possible knight moves (L-shaped)
     const knightMoves = [
       // TOP LEFT
       { x: this.position.x - 2, y: this.position.y - 1 },
@@ -26,17 +25,17 @@ export class Knight extends Piece {
       { x: this.position.x + 1, y: this.position.y + 2 },
     ];
 
-    // Ajouter les mouvements valides
-    // Le cavalier peut sauter par-dessus les pièces
-    // Mais ne peut pas atterrir sur une pièce alliée
+    // Add valid moves
+    // The knight can jump over pieces
+    // But can't land on an ally piece
     for (const move of knightMoves) {
-      if (board) {
-        // Ne pas ajouter si la case est occupée par une pièce alliée
-        if (!board.isSquareOccupiedByAlly(move.x, move.y, this.color)) {
+      if (this.board) {
+        // Don't add if the square is occupied by an ally piece
+        if (!this.board.isSquareOccupiedByAlly(move.x, move.y, this.color)) {
           this.addMovePossible(move);
         }
       } else {
-        // Si pas de board, ajouter tous les mouvements (comportement par défaut)
+        // If no board, add all moves (default behavior)
         this.addMovePossible(move);
       }
     }

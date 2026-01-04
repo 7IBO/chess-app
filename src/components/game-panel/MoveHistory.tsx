@@ -1,5 +1,5 @@
 /**
- * Affiche l'historique des mouvements
+ * Displays the move history
  */
 
 import { memo } from "react";
@@ -27,7 +27,7 @@ function FormattedMove({ move, index }: FormattedMoveProps) {
       <div className="flex items-center gap-1.5 flex-1 text-xs min-w-0 overflow-hidden">
         <span className="text-lg shrink-0">{icon}</span>
         {move.castling ? (
-          <span className="text-slate-200 font-semibold">Roque</span>
+          <span className="text-slate-200 font-semibold">Castling</span>
         ) : (
           <>
             <span className="text-slate-300 font-medium shrink-0">{piece}</span>
@@ -53,12 +53,18 @@ function FormattedMove({ move, index }: FormattedMoveProps) {
 export const MoveHistory = memo(function MoveHistory({ moveHistory }: MoveHistoryProps) {
   return (
     <div className="bg-linear-to-br from-slate-700 to-slate-800 p-4 rounded-xl shadow-lg border border-slate-600 flex-1 flex flex-col min-w-0 overflow-hidden">
-      <h3 className="font-bold text-lg mb-3 text-white">Historique</h3>
+      <h3 className="font-bold text-lg mb-3 text-white">History</h3>
       <div className="space-y-0.5 overflow-y-auto overflow-x-hidden pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent hover:scrollbar-thumb-slate-500">
         {moveHistory.length > 0 ? (
-          moveHistory.map((move, idx) => <FormattedMove key={idx} move={move} index={idx} />)
+          moveHistory.map((move, idx) => (
+            <FormattedMove
+              key={`${move.piece}-${move.from.x}${move.from.y}-${move.to.x}${move.to.y}-${idx}`}
+              move={move}
+              index={idx}
+            />
+          ))
         ) : (
-          <p className="text-slate-500 text-sm italic">Aucun mouvement</p>
+          <p className="text-slate-500 text-sm italic">No moves</p>
         )}
       </div>
     </div>

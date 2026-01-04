@@ -1,5 +1,5 @@
 /**
- * Utilitaire pour sauvegarder et charger l'état du jeu avec IndexedDB
+ * Utility for saving and loading game state with IndexedDB
  */
 
 import type { CapturedPieces, Move, PieceColor } from "@/types/chess.types";
@@ -39,9 +39,12 @@ class GameStorage {
 
   async saveGame(state: Omit<GameState, "timestamp">): Promise<void> {
     if (!this.db) await this.init();
+    if (!this.db) {
+      throw new Error("Database not initialized");
+    }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db?.transaction([STORE_NAME], "readwrite");
+      const transaction = this.db!.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
 
       const gameState: GameState = {
@@ -58,9 +61,12 @@ class GameStorage {
 
   async loadGame(): Promise<GameState | null> {
     if (!this.db) await this.init();
+    if (!this.db) {
+      throw new Error("Database not initialized");
+    }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db?.transaction([STORE_NAME], "readonly");
+      const transaction = this.db!.transaction([STORE_NAME], "readonly");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.get("current");
 
@@ -78,9 +84,12 @@ class GameStorage {
 
   async clearGame(): Promise<void> {
     if (!this.db) await this.init();
+    if (!this.db) {
+      throw new Error("Database not initialized");
+    }
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db?.transaction([STORE_NAME], "readwrite");
+      const transaction = this.db!.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
       const request = store.delete("current");
 
